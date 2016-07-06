@@ -13,7 +13,7 @@
  */
 class CRM_Donrec_Logic_Selector {
 
-  /** 
+  /**
    * Build and run the query to select all contributions
    * matching the criteria, and try to create a snapshot
    *
@@ -37,6 +37,8 @@ class CRM_Donrec_Logic_Selector {
     if ($date_to) {
       $query_date_limit .= " AND `receive_date` <= '$formatted_date_to'";
     }
+
+    $currency = $values['donrec_contribution_currency'];
 
     // get table- and column name
     $table_query = "SELECT `cg`.`table_name`,
@@ -94,7 +96,7 @@ class CRM_Donrec_Logic_Selector {
                   AND (`non_deductible_amount` = 0 OR `non_deductible_amount` IS NULL)
                   AND `contribution_status_id` = 1
                   AND `is_test` = 0
-                  AND `currency` = 'EUR'
+                  AND `currency` = '$currency'
                   AND existing_receipt.`entity_id` IS NULL;";
 
     // execute the query
@@ -107,9 +109,9 @@ class CRM_Donrec_Logic_Selector {
     }
 
     // finally, build the snapshot with it
-    return CRM_Donrec_Logic_Snapshot::create( $contributionIds, 
-                                              CRM_Donrec_Logic_Settings::getLoggedInContactID(), 
-                                              $formatted_date_from, 
+    return CRM_Donrec_Logic_Snapshot::create( $contributionIds,
+                                              CRM_Donrec_Logic_Settings::getLoggedInContactID(),
+                                              $formatted_date_from,
                                               $formatted_date_to,
                                               $values['profile']);
   }

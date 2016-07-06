@@ -17,6 +17,8 @@ require_once 'CRM/Core/Form.php';
  */
 class CRM_Donrec_Form_Task_Create extends CRM_Core_Form {
 
+  private $availableCurrencies;
+
   function buildQuickForm() {
     CRM_Utils_System::setTitle(ts('Issue Donation Receipts', array('domain' => 'de.systopia.donrec')));
 
@@ -31,11 +33,15 @@ class CRM_Donrec_Form_Task_Create extends CRM_Core_Form {
     $this->addDateRange('donrec_contribution_horizon', '_from', '_to', ts('From:', array('domain' => 'de.systopia.donrec')), 'searchDate', TRUE, FALSE);
 
     // add profile selector
-    $this->addElement('select', 
-                      'profile', 
-                      ts('Profile', array('domain' => 'de.systopia.donrec')), 
-                      CRM_Donrec_Logic_Profile::getAllNames(), 
+    $this->addElement('select',
+                      'profile',
+                      ts('Profile', array('domain' => 'de.systopia.donrec')),
+                      CRM_Donrec_Logic_Profile::getAllNames(),
                       array('class' => 'crm-select2'));
+
+    // add currency selector
+    $this->availableCurrencies = array_keys(CRM_Core_OptionGroup::values('currencies_enabled'));
+    $this->addElement('select', 'donrec_contribution_currency', ts('Currency'), $this->availableCurrencies);
 
     $this->addDefaultButtons(ts('Continue', array('domain' => 'de.systopia.donrec')));
   }
@@ -81,13 +87,16 @@ class CRM_Donrec_Form_Task_Create extends CRM_Core_Form {
       }
     }
 
-
     // process form values and try to build a snapshot with all contributions
     // that match the specified criteria (i.e. contributions which have been
     // created between two specific dates)
     $values = $this->exportValues();
     $contactId = empty($_REQUEST['cid']) ? NULL : $_REQUEST['cid'];
     $values['contact_id'] = $contactId;
+
+    // get the currency ISO code
+    $currencyId = $values['donrec_contribution_currency'];
+    $values['donrec_contribution_currency'] = $this->availableCurrencies[ $currencyId ];
 
     //set url_back as session-variable
     $session = CRM_Core_Session::singleton();
